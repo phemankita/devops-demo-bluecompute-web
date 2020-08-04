@@ -5,9 +5,6 @@ USER root
 # Install OS updates
 RUN useradd --uid 1000 --gid 0 --shell /bin/bash --create-home node
 
-COPY .* /project/
-COPY *.* /project/
-COPY Dockerfile /project/
 COPY . /project/user-app/
 
 # Install user-app dependencies
