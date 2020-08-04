@@ -1,0 +1,73 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: bluecompute-web-build-task
+spec:
+  params:
+    - name: BUILDER_IMAGE
+      description: The location of the buildah builder image.
+      default: "quay.io/buildah/stable:v1.12.0"
+    - name: DOCKERFILE
+      description: Path to the Dockerfile to build.
+      default: ./Dockerfile.redhat
+    - name: CONTEXT
+      description: Path to the directory to use as context.
+      default: .
+    - name: TLSVERIFY
+      description: Verify the TLS on the registry endpoint (for push/pull to a non-TLS registry)
+      default: "true"
+    - name: STORAGE_DRIVER
+      description: Set buildah storage driver
+      default: overlay
+  resources:
+    inputs:
+      - name: git-source-web
+        type: git
+      - name: docker-image-web
+        type: image
+  steps:
+  - name: node-install
+    image: node:6-alpine
+    workingDir: /workspace/git-source-web/StoreWebApp
+    command: ["npm"]
+    args:
+      - "install"
+  - name: build-image
+    image: $(params.BUILDER_IMAGE)
+    workingDir: /workspace/git-source-web
+    command: ["/bin/bash"]
+    args:
+      - -c
+      - |
+        set -e
+        SHORT_GIT_HASH="$(cat .git/FETCH_HEAD | awk '{print substr($1,0,7)}')"
+        NEW_IMAGE_ID="$(resources.inputs.docker-image-web.url):$SHORT_GIT_HASH"
+        echo "SHORT_GIT_HASH = $SHORT_GIT_HASH"
+        echo "Building Image $NEW_IMAGE_ID"
+        buildah bud --tls-verify="$(params.TLSVERIFY)" --layers --storage-driver=$(params.STORAGE_DRIVER) -f "$(params.DOCKERFILE)" -t "$NEW_IMAGE_ID" "$(params.CONTEXT)"
+    securityContext:
+      privileged: true
+    volumeMounts:
+      - name: varlibcontainers
+        mountPath: /var/lib/containers
+  - name: security-scan
+    image: aquasec/trivy
+    workingDir: /workspace/git-source-web
+    command: ["/bin/bash"]
+    args:
+      - -c
+      - |
+        set -e
+        SHORT_GIT_HASH="$(cat .git/FETCH_HEAD | awk '{print substr($1,0,7)}')"
+        NEW_IMAGE_ID="$(resources.inputs.docker-image-web.url):$SHORT_GIT_HASH"
+        echo "SHORT_GIT_HASH = $SHORT_GIT_HASH"
+        echo "Scanning $NEW_IMAGE_ID"
+        trivy $NEW_IMAGE_ID
+    securityContext:
+      privileged: true
+    volumeMounts:
+      - name: varlibcontainers
+        mountPath: /var/lib/containers
+  volumes:
+    - name: varlibcontainers
+      emptyDir: {}
