@@ -1,4 +1,4 @@
-### Bluecompute Web Application 
+### BlueCompute Web Application 
 
 ## Introduction
 
