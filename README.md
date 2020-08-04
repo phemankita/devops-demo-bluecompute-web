@@ -6,9 +6,7 @@ The sample web application is built to demonstrate how to access the Omnichannel
 
 Here is an overview of the project's features:
 
-    AngularJS SPA.
-    Node.js based BFF application to access APIs.
-    Authentication and Authorization through OAuth 2.0.
-    Distributed as Docker container and deployed to Kubernetes cluster.
-    
-    
+- AngularJS SPA.
+- Node.js based BFF application to access APIs.
+- Authentication and Authorization through OAuth 2.0.
+- Distributed as Docker container and deployed to Kubernetes cluster.
