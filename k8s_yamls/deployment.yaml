@@ -1,6 +1,6 @@
 ##---
 # Source: bluecompute-ce/charts/web/templates/deployment.yaml
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web
@@ -34,7 +34,7 @@ spec:
         - name: config-volume
           mountPath: /app/config
         ports:
-        - containerPort: 8000
+        - containerPort: 3000
           protocol: TCP
         readinessProbe:
           httpGet:
