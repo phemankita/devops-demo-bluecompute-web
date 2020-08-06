@@ -1,0 +1,20 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: bluecompute-web-eventlistener
+spec:
+  serviceAccountName: pipeline
+  triggers:
+  - bindings:
+    - kind: TriggerBinding
+      name: bluecompute-web-trigger
+    interceptors:
+    - cel:
+        filter: |-
+          (header.match('X-GitHub-Event', 'pull_request') &&
+           body.action == 'closed' &&
+           body.pull_request.merged == true &&
+           body.pull_request.head.repo.full_name  == 'phemankita/devops-demo-bluecompute-web')
+    name: triggers-bluecompute-web
+    template:
+      name: bluecompute-web-trigger

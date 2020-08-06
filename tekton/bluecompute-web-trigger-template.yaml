@@ -1,0 +1,38 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: bluecompute-web-trigger
+spec:
+  params:
+  - default: https://github.com/phemankita/devops-demo-bluecompute-web
+    description: The git repository URL for the aws-paks build and deploy
+    name: gitUrl
+  - default: hp-prevail
+    description: The git revision to build
+    name: gitRevision
+  - default: pipeline
+    description: The service account name to use to run the pipeline
+    name: serviceAccountName
+  - default: latest
+    description: The image tag
+    name: imageTag
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: bluecompute-web-pr-
+    spec:
+      pipelineRef:
+        name: bluecompute-build-and-deploy-pipeline-web
+      resources:
+        - name: git-source-web
+          resourceRef:
+            name: git-source-web
+        - name: docker-image-web
+          resourceRef:
+            name: docker-image-web
+      params:
+        - name: pathToYamlFile
+          value: "k8s_yamls"
+      serviceAccountName: pipeline
+      timeout: "1h0m0s"
