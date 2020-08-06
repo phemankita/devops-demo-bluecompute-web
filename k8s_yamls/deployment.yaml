@@ -6,6 +6,9 @@ metadata:
     app: "web"
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: "web"
   template:
     metadata:
       labels:
@@ -51,5 +54,7 @@ spec:
           items:
           - key: checks
             path: checks
+          - key: default.json
+            path: default.json
           - key: production.json
             path: production.json
