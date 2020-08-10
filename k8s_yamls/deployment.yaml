@@ -54,7 +54,5 @@ spec:
           items:
           - key: checks
             path: checks
-          - key: default.json
-            path: default.json
           - key: production.json
             path: production.json

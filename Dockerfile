@@ -16,7 +16,7 @@ RUN mkdir -p $APP_HOME/node_modules $APP_HOME/public/resources/bower_components
 WORKDIR $APP_HOME
 
 # Copy package.json, bower.json, and .bowerrc files
-COPY StoreWebApp/package*.json StoreWebApp/bower.json StoreWebApp/.bowerrc ./
+COPY package*.json bower.json ./
 
 # Create user, chown, and chmod
 RUN adduser -u 2000 -G root -D blue \
@@ -29,7 +29,7 @@ RUN ./node_modules/.bin/bower install --allow-root /app
 #USER 0
 
 COPY startup.sh startup.sh
-COPY StoreWebApp ./
+COPY . ./
 
 # Chown
 RUN chown -R 2000:0 $APP_HOME
@@ -40,5 +40,5 @@ RUN apk del git less openssh
 # Switch back to non-root
 USER 2000
 
-EXPOSE 8000 9000
+EXPOSE 3000 3000
 ENTRYPOINT ["./startup.sh"]
