@@ -55,13 +55,11 @@ spec:
       curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin
       echo "Vulnerability scan for the project filesystem"
       trivy fs /workspace/git-source-web
-      trivy fs --clear-cache --ignore-unfixed --exit-code 0 --severity HIGH --no-progress $NEW_IMAGE_ID
-      trivy fs --clear-cache --ignore-unfixed --exit-code 1 --severity CRITICAL --no-progress $NEW_IMAGE_ID
       buildah --storage-driver=$(params.STORAGE_DRIVER) push --tls-verify="$(params.TLSVERIFY)" "$NEW_IMAGE_ID" "docker://$NEW_IMAGE_ID"
       echo "Vulnerability scan for the pushed image - $NEW_IMAGE_ID"
       trivy $NEW_IMAGE_ID
-      trivy --clear-cache --ignore-unfixed --exit-code 0 --severity HIGH --no-progress $NEW_IMAGE_ID
-      trivy --clear-cache --ignore-unfixed --exit-code 1 --severity CRITICAL --no-progress $NEW_IMAGE_ID
+      trivy --ignore-unfixed --exit-code 0 --severity HIGH --no-progress $NEW_IMAGE_ID
+      trivy --ignore-unfixed --exit-code 1 --severity CRITICAL --no-progress $NEW_IMAGE_ID
     securityContext:
       privileged: true
     volumeMounts:
