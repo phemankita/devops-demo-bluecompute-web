@@ -42,7 +42,7 @@ spec:
       SHORT_GIT_HASH="$(cat .git/FETCH_HEAD | awk '{print substr($1,0,7)}')"
       NEW_IMAGE_ID="$(resources.inputs.docker-image-web.url):$SHORT_GIT_HASH"
       echo $NEW_IMAGE_ID > /workspace/git-source-web/NEW_IMAGE_ID
-  - name: build-push
+  - name: build-image
     image: $(params.BUILDER_IMAGE)
     workingDir: /workspace/git-source-web
     script: |
@@ -50,12 +50,44 @@ spec:
       export NEW_IMAGE_ID=$(cat /workspace/git-source-web/NEW_IMAGE_ID)
       echo "Building Image $NEW_IMAGE_ID"
       buildah bud --tls-verify="$(params.TLSVERIFY)" --layers --storage-driver=$(params.STORAGE_DRIVER) -f "$(params.DOCKERFILE)" -t "$NEW_IMAGE_ID" "$(params.CONTEXT)"
-      echo "Pushing Image $NEW_IMAGE_ID"
-      # Adding trivy instruction here is not working
+    securityContext:
+      privileged: true
+    volumeMounts:
+      - name: varlibcontainers
+        mountPath: /var/lib/containers
+  - name: scan-image
+    image: $(params.BUILDER_IMAGE)
+    workingDir: /workspace/git-source-web
+    script: |
+      #!/usr/bin/env bash
       curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin
       echo "Vulnerability scan for the project filesystem"
       trivy fs /workspace/git-source-web
+    securityContext:
+      privileged: true
+    volumeMounts:
+      - name: varlibcontainers
+        mountPath: /var/lib/containers
+  - name: push-image
+    image: $(params.BUILDER_IMAGE)
+    workingDir: /workspace/git-source-web
+    script: |
+      #!/usr/bin/env bash
+      export NEW_IMAGE_ID=$(cat /workspace/git-source-web/NEW_IMAGE_ID)
+      echo "Pushing Image $NEW_IMAGE_ID"
       buildah --storage-driver=$(params.STORAGE_DRIVER) push --tls-verify="$(params.TLSVERIFY)" "$NEW_IMAGE_ID" "docker://$NEW_IMAGE_ID"
+    securityContext:
+      privileged: true
+    volumeMounts:
+      - name: varlibcontainers
+        mountPath: /var/lib/containers
+  - name: scan-pushed-image
+    image: $(params.BUILDER_IMAGE)
+    workingDir: /workspace/git-source-web
+    script: |
+      #!/usr/bin/env bash
+      export NEW_IMAGE_ID=$(cat /workspace/git-source-web/NEW_IMAGE_ID)
+      curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin
       echo "Vulnerability scan for the pushed image - $NEW_IMAGE_ID"
       trivy $NEW_IMAGE_ID
       trivy --ignore-unfixed --exit-code 0 --severity HIGH --no-progress $NEW_IMAGE_ID
