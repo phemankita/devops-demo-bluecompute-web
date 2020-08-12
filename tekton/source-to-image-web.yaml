@@ -31,8 +31,6 @@ spec:
     workingDir: /workspace/git-source-web
     command:
     - hadolint
-    - --version
-    - hadolint
     - $(params.DOCKERFILE)
   - name: write-to-workspace
     image: ubuntu
