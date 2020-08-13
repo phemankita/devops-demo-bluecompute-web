@@ -87,7 +87,6 @@ spec:
       export NEW_IMAGE_ID=$(cat /workspace/git-source-web/NEW_IMAGE_ID)
       curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin
       echo "Vulnerability scan for the pushed image - $NEW_IMAGE_ID"
-      trivy $NEW_IMAGE_ID
       trivy --ignore-unfixed --exit-code 0 --severity HIGH --no-progress $NEW_IMAGE_ID
       trivy --ignore-unfixed --exit-code 1 --severity CRITICAL --no-progress $NEW_IMAGE_ID
     securityContext:
